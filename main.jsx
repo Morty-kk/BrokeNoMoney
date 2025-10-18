@@ -74,6 +74,52 @@ const journeySteps = [
     },
 ];
 
+const inspirationImages = [
+    {
+        src: "https://images.unsplash.com/photo-1580894906472-4c9b1d3a7f88?auto=format&fit=crop&w=900&q=80",
+        alt: "Junge Person, die mit Budget-Stickern ein Notizbuch gestaltet",
+        caption: "Money Journaling & Weekly Reviews",
+    },
+    {
+        src: "https://images.unsplash.com/photo-1556740749-887f6717d7e4?auto=format&fit=crop&w=900&q=80",
+        alt: "Freunde feiern gemeinsam kleine finanzielle Erfolge",
+        caption: "Micro-Celebrations mit deiner Crew",
+    },
+    {
+        src: "https://images.unsplash.com/photo-1520607162513-77705c0f0d4a?auto=format&fit=crop&w=900&q=80",
+        alt: "Smartphone mit modernem Finanz-Dashboard",
+        caption: "Live-Dashboards, die wirklich motivieren",
+    },
+];
+
+const Logo = () => (
+    <>
+        <span className="logo-icon" aria-hidden="true">
+            <svg viewBox="0 0 64 64" role="img" aria-hidden="true" focusable="false">
+                <defs>
+                    <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stopColor="#27a243" />
+                        <stop offset="100%" stopColor="#1d7f35" />
+                    </linearGradient>
+                </defs>
+                <rect x="2" y="2" width="60" height="60" rx="14" fill="url(#logoGradient)" />
+                <path
+                    d="M20 44.5c4.1 0 7.5-3.4 7.5-7.5S24.1 29.5 20 29.5 12.5 32.9 12.5 37 15.9 44.5 20 44.5Zm24 0c4.1 0 7.5-3.4 7.5-7.5S48.1 29.5 44 29.5 36.5 32.9 36.5 37s3.4 7.5 7.5 7.5Z"
+                    fill="#f0fdf4"
+                />
+                <path d="M16 25h32" stroke="#f0fdf4" strokeWidth="6" strokeLinecap="round" />
+                <path d="M24 18h16" stroke="#f0fdf4" strokeWidth="6" strokeLinecap="round" />
+            </svg>
+            <span className="logo-glow" aria-hidden="true"></span>
+        </span>
+        <span className="logo-wordmark">
+            <span>Broke</span>
+            <span className="logo-highlight">No</span>
+            <span>Money</span>
+        </span>
+    </>
+);
+
 const DarkModeToggle = ({ theme, onToggle }) => (
     <button
         type="button"
@@ -92,11 +138,8 @@ const DarkModeToggle = ({ theme, onToggle }) => (
 const NavBar = ({ theme, onToggleTheme }) => (
     <header className="header">
         <div className="nav-container">
-            <a href="#home" className="logo">
-                <span aria-hidden="true" className="logo-icon">
-                    💶
-                </span>
-                BrokeNoMore
+            <a href="#home" className="logo" aria-label="BrokeNoMoney Startseite">
+                <Logo />
             </a>
             <nav aria-label="Hauptnavigation" className="nav-links">
                 <ul>
@@ -117,62 +160,90 @@ const NavBar = ({ theme, onToggleTheme }) => (
     </header>
 );
 
-const HeroSection = () => (
-    <section id="home" className="hero-section fade-in" data-animate>
-        <div className="hero-inner">
-            <div className="hero-text">
-                <span className="tagline">Finanzen, aber endlich verständlich</span>
-                <h1>
-                    Schon wieder ist am Monatsende das Konto leer?
-                    <span className="accent"> Wir ändern das – mit Tools, die wirklich zu deinem Leben passen.</span>
-                </h1>
-                <p>
-                    Vergiss starre Tabellen und Motivation, die nach zwei Wochen verpufft. BrokeNoMore zeigt dir, wie du dein Geld bewusst planst,
-                    Dringendes und Wichtiges trennst und trotzdem Spaß im Leben hast.
-                </p>
-                <div className="hero-highlights">
-                    {heroHighlights.map((item) => (
-                        <div key={item} className="highlight-card">
-                            <span className="dot" aria-hidden="true"></span>
-                            <p>{item}</p>
-                        </div>
-                    ))}
-                </div>
-                <div className="hero-actions">
-                    <a className="cta" href="#contact">
-                        Ich will starten
-                    </a>
-                    <button className="ghost-button" onClick={() => (window.location.hash = "#about")}>
-                        Mehr erfahren
-                    </button>
-                </div>
-            </div>
-            <aside className="hero-figure" aria-label="Feature Vorschau">
-                <div className="glow-orb" aria-hidden="true"></div>
-                <div className="hero-bubble floating-card">
-                    <span className="hero-bubble-title">Kontostand im Blick</span>
+const HeroSection = () => {
+    const [isCelebrating, setIsCelebrating] = useState(false);
+
+    const handleCelebrate = (event) => {
+        const { currentTarget, nativeEvent } = event;
+        if (currentTarget && nativeEvent) {
+            const rect = currentTarget.getBoundingClientRect();
+            const x = ((nativeEvent.clientX - rect.left) / rect.width) * 100;
+            const y = ((nativeEvent.clientY - rect.top) / rect.height) * 100;
+            currentTarget.style.setProperty("--x", `${x}%`);
+            currentTarget.style.setProperty("--y", `${y}%`);
+        }
+
+        setIsCelebrating(true);
+        window.location.hash = "#about";
+        window.setTimeout(() => {
+            setIsCelebrating(false);
+        }, 1400);
+    };
+
+    return (
+        <section id="home" className="hero-section fade-in" data-animate>
+            <div className="hero-inner">
+                <div className="hero-text">
+                    <span className="tagline">Finanzen, aber endlich verständlich</span>
+                    <h1>
+                        Schon wieder ist am Monatsende das Konto leer?
+                        <span className="accent"> Wir ändern das – mit Tools, die wirklich zu deinem Leben passen.</span>
+                    </h1>
                     <p>
-                        Unser Dashboard bündelt Bankkonten, Cash und Sparziele – ohne dass du Tabellen wälzen musst.
+                        Vergiss starre Tabellen und Motivation, die nach zwei Wochen verpufft. BrokeNoMoney zeigt dir, wie du dein Geld bewusst
+                        planst, Dringendes und Wichtiges trennst und trotzdem Spaß im Leben hast.
                     </p>
-                </div>
-                <div className="hero-metric floating-card delay-1">
-                    <p>Monatsbudget</p>
-                    <strong>1.280 €</strong>
-                    <span className="metric-pill positive">+ 140 € übrig</span>
-                </div>
-                <div className="hero-progress floating-card delay-2" role="img" aria-label="Sparfortschritt">
-                    <div className="hero-progress-info">
-                        <span>Reise nach Porto</span>
-                        <span>65%</span>
+                    <div className="hero-highlights">
+                        {heroHighlights.map((item) => (
+                            <div key={item} className="highlight-card">
+                                <span className="dot" aria-hidden="true"></span>
+                                <p>{item}</p>
+                            </div>
+                        ))}
                     </div>
-                    <div className="progress-bar">
-                        <span className="progress-fill" style={{ width: "65%" }}></span>
+                    <div className="hero-actions">
+                        <a className="cta" href="#contact">
+                            Ich will starten
+                        </a>
+                        <button className={`ghost-button animated-button ${isCelebrating ? "is-active" : ""}`} onClick={handleCelebrate}>
+                            Mehr erfahren
+                        </button>
                     </div>
                 </div>
-            </aside>
-        </div>
-    </section>
-);
+                <aside className={`hero-figure ${isCelebrating ? "hero-celebrate" : ""}`} aria-label="Feature Vorschau">
+                    <div className="glow-orb" aria-hidden="true"></div>
+                    <div className="hero-bubble floating-card">
+                        <span className="hero-bubble-title">Kontostand im Blick</span>
+                        <p>
+                            Unser Dashboard bündelt Bankkonten, Cash und Sparziele – ohne dass du Tabellen wälzen musst.
+                        </p>
+                    </div>
+                    <div className="hero-metric floating-card delay-1">
+                        <p>Monatsbudget</p>
+                        <strong>1.280 €</strong>
+                        <span className="metric-pill positive">+ 140 € übrig</span>
+                    </div>
+                    <div className="hero-progress floating-card delay-2" role="img" aria-label="Sparfortschritt">
+                        <div className="hero-progress-info">
+                            <span>Reise nach Porto</span>
+                            <span>65%</span>
+                        </div>
+                        <div className="progress-bar">
+                            <span className="progress-fill" style={{ width: "65%" }}></span>
+                        </div>
+                    </div>
+                    {isCelebrating && (
+                        <div className="confetti-wrapper" aria-hidden="true">
+                            {Array.from({ length: 14 }).map((_, index) => (
+                                <span key={index} className={`confetti-piece confetti-${index}`}></span>
+                            ))}
+                        </div>
+                    )}
+                </aside>
+            </div>
+        </section>
+    );
+};
 
 const PromiseSection = () => (
     <section id="about" className="promise-section fade-in" data-animate>
@@ -275,6 +346,79 @@ const ServicesSection = () => (
         </div>
     </section>
 );
+
+const MediaShowcase = () => {
+    const defaultVideo = "https://cdn.coverr.co/videos/coverr-counting-bills-7852/1080p.mp4";
+    const [videoSource, setVideoSource] = useState(defaultVideo);
+    const [videoLabel, setVideoLabel] = useState("Finanz Flow Intro");
+    const [videoType, setVideoType] = useState("video/mp4");
+    const [uploadedUrl, setUploadedUrl] = useState(null);
+
+    useEffect(() => {
+        return () => {
+            if (uploadedUrl) {
+                URL.revokeObjectURL(uploadedUrl);
+            }
+        };
+    }, [uploadedUrl]);
+
+    const handleUpload = (event) => {
+        const file = event.target.files && event.target.files[0];
+        if (!file) {
+            return;
+        }
+
+        if (uploadedUrl) {
+            URL.revokeObjectURL(uploadedUrl);
+        }
+
+        const url = URL.createObjectURL(file);
+        setUploadedUrl(url);
+        setVideoSource(url);
+        setVideoLabel(file.name || "Eigenes Video");
+        setVideoType(file.type || "video/mp4");
+        event.target.value = "";
+    };
+
+    return (
+        <section className="media-section fade-in" data-animate>
+            <div className="media-intro">
+                <span className="tagline">Sieh, wie sich dein Mindset verändert</span>
+                <h2>Animationen, Bilder & ein Videoplayer, der deine Story erzählt.</h2>
+                <p>
+                    Mach aus Zahlen Emotionen: Unsere Motion-Grafiken bringen dir jede Woche Mini-Wins. Ergänze das Ganze mit deinem eigenen
+                    Video oder starte mit unserem Quick-Intro.
+                </p>
+            </div>
+            <div className="media-content">
+                <div className="media-player floating-card" role="region" aria-label="Video Vorschau">
+                    <video key={videoSource} controls playsInline poster="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=900&q=80">
+                        <source src={videoSource} type={videoType || "video/mp4"} />
+                        Dein Browser unterstützt keine eingebetteten Videos.
+                    </video>
+                    <div className="media-meta">
+                        <div>
+                            <span className="video-label">Gerade aktiv:</span>
+                            <strong className="video-name">{videoLabel}</strong>
+                        </div>
+                        <label className="upload-button">
+                            <input type="file" accept="video/mp4,video/webm,video/ogg" onChange={handleUpload} />
+                            Eigenes Video laden
+                        </label>
+                    </div>
+                </div>
+                <div className="media-gallery">
+                    {inspirationImages.map((image) => (
+                        <figure key={image.src} className="media-card">
+                            <img src={image.src} alt={image.alt} loading="lazy" />
+                            <figcaption>{image.caption}</figcaption>
+                        </figure>
+                    ))}
+                </div>
+            </div>
+        </section>
+    );
+};
 
 const ContactSection = () => {
     const [formData, setFormData] = useState({ name: "", email: "", message: "" });
@@ -459,6 +603,7 @@ const App = () => {
                 <JourneySection />
                 <StatSection />
                 <ServicesSection />
+                <MediaShowcase />
                 <ContactSection />
             </main>
             <Footer />
