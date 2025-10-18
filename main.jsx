@@ -1,4 +1,4 @@
-const { useEffect, useMemo, useState } = React;
+const { useEffect, useMemo, useState, useRef } = React;
 
 const navLinks = [
     { label: "Services", href: "#services" },
@@ -12,6 +12,26 @@ const heroHighlights = [
     "Visualisierte Fortschritte, die motivieren statt stressen.",
     "Persönliche Routinen, die du in deinen Alltag integrieren kannst.",
 ];
+
+const galleryImages = [
+    {
+        src: "https://images.unsplash.com/photo-1556740749-887f6717d7e4?auto=format&fit=crop&w=900&q=80",
+        alt: "Junge Person markiert Ziele in einem Notizbuch",
+        caption: "Step-by-step Pläne statt Chaos im Kopf",
+    },
+    {
+        src: "https://images.unsplash.com/photo-1545239351-1141bd82e8a6?auto=format&fit=crop&w=900&q=80",
+        alt: "Freunde feiern gemeinsam kleine Finanz-Erfolge",
+        caption: "Celebrations, die sich echt anfühlen",
+    },
+    {
+        src: "https://images.unsplash.com/photo-1520607162513-77705c0f0d4a?auto=format&fit=crop&w=900&q=80",
+        alt: "Tablet mit Finanz-Dashboard im warmen Licht",
+        caption: "Visuals, die deine Fortschritte sichtbar machen",
+    },
+];
+
+const celebrationParticles = Array.from({ length: 6 }, (_, index) => index);
 
 const serviceCards = [
     {
@@ -94,9 +114,12 @@ const NavBar = ({ theme, onToggleTheme }) => (
         <div className="nav-container">
             <a href="#home" className="logo">
                 <span aria-hidden="true" className="logo-icon">
-                    💶
+                    <span className="logo-monogram">BN</span>
                 </span>
-                BrokeNoMore
+                <span className="logo-wordmark">
+                    <span className="logo-strong">Broke</span>
+                    <span className="logo-light">NoMore</span>
+                </span>
             </a>
             <nav aria-label="Hauptnavigation" className="nav-links">
                 <ul>
@@ -117,62 +140,128 @@ const NavBar = ({ theme, onToggleTheme }) => (
     </header>
 );
 
-const HeroSection = () => (
-    <section id="home" className="hero-section fade-in" data-animate>
-        <div className="hero-inner">
-            <div className="hero-text">
-                <span className="tagline">Finanzen, aber endlich verständlich</span>
-                <h1>
-                    Schon wieder ist am Monatsende das Konto leer?
-                    <span className="accent"> Wir ändern das – mit Tools, die wirklich zu deinem Leben passen.</span>
-                </h1>
-                <p>
-                    Vergiss starre Tabellen und Motivation, die nach zwei Wochen verpufft. BrokeNoMore zeigt dir, wie du dein Geld bewusst planst,
-                    Dringendes und Wichtiges trennst und trotzdem Spaß im Leben hast.
-                </p>
-                <div className="hero-highlights">
-                    {heroHighlights.map((item) => (
-                        <div key={item} className="highlight-card">
-                            <span className="dot" aria-hidden="true"></span>
-                            <p>{item}</p>
-                        </div>
-                    ))}
+const HeroSection = () => {
+    const [isCelebrating, setIsCelebrating] = useState(false);
+    const celebrationTimeoutRef = useRef(null);
+
+    useEffect(() => {
+        return () => {
+            if (celebrationTimeoutRef.current) {
+                clearTimeout(celebrationTimeoutRef.current);
+            }
+        };
+    }, []);
+
+    const triggerCelebration = () => {
+        if (celebrationTimeoutRef.current) {
+            clearTimeout(celebrationTimeoutRef.current);
+        }
+
+        setIsCelebrating(true);
+        celebrationTimeoutRef.current = setTimeout(() => {
+            setIsCelebrating(false);
+        }, 1400);
+    };
+
+    const handleLearnMore = () => {
+        triggerCelebration();
+        window.location.hash = "#about";
+    };
+
+    return (
+        <section id="home" className="hero-section fade-in" data-animate>
+            <div className={`celebration-sparks ${isCelebrating ? "is-active" : ""}`} aria-hidden="true">
+                {celebrationParticles.map((particle) => (
+                    <span key={particle}></span>
+                ))}
+            </div>
+            <div className={`hero-inner ${isCelebrating ? "is-celebrating" : ""}`}>
+                <div className="hero-text">
+                    <span className="tagline">Finanzen, aber endlich verständlich</span>
+                    <h1>
+                        Schon wieder ist am Monatsende das Konto leer?
+                        <span className="accent"> Wir ändern das – mit Tools, die wirklich zu deinem Leben passen.</span>
+                    </h1>
+                    <p>
+                        Vergiss starre Tabellen und Motivation, die nach zwei Wochen verpufft. BrokeNoMore zeigt dir, wie du dein Geld bewusst planst,
+                        Dringendes und Wichtiges trennst und trotzdem Spaß im Leben hast.
+                    </p>
+                    <div className="hero-highlights">
+                        {heroHighlights.map((item) => (
+                            <div key={item} className="highlight-card">
+                                <span className="dot" aria-hidden="true"></span>
+                                <p>{item}</p>
+                            </div>
+                        ))}
+                    </div>
+                    <div className="hero-actions">
+                        <a className="cta" href="#contact" onClick={triggerCelebration}>
+                            Ich will starten
+                        </a>
+                        <button className="ghost-button" type="button" onClick={handleLearnMore}>
+                            Mehr erfahren
+                        </button>
+                        <button className="celebrate-button" type="button" onClick={triggerCelebration}>
+                            Animation starten
+                        </button>
+                    </div>
                 </div>
-                <div className="hero-actions">
-                    <a className="cta" href="#contact">
-                        Ich will starten
-                    </a>
-                    <button className="ghost-button" onClick={() => (window.location.hash = "#about")}>
-                        Mehr erfahren
-                    </button>
+                <div className="hero-visuals">
+                    <aside className="hero-figure" aria-label="Feature Vorschau">
+                        <div className="glow-orb" aria-hidden="true"></div>
+                        <div className={`hero-bubble floating-card ${isCelebrating ? "celebrating" : ""}`}>
+                            <span className="hero-bubble-title">Kontostand im Blick</span>
+                            <p>
+                                Unser Dashboard bündelt Bankkonten, Cash und Sparziele – ohne dass du Tabellen wälzen musst.
+                            </p>
+                        </div>
+                        <div className={`hero-metric floating-card delay-1 ${isCelebrating ? "celebrating" : ""}`}>
+                            <p>Monatsbudget</p>
+                            <strong>1.280 €</strong>
+                            <span className="metric-pill positive">+ 140 € übrig</span>
+                        </div>
+                        <div
+                            className={`hero-progress floating-card delay-2 ${isCelebrating ? "celebrating" : ""}`}
+                            role="img"
+                            aria-label="Sparfortschritt"
+                        >
+                            <div className="hero-progress-info">
+                                <span>Reise nach Porto</span>
+                                <span>65%</span>
+                            </div>
+                            <div className="progress-bar">
+                                <span className="progress-fill" style={{ width: "65%" }}></span>
+                            </div>
+                        </div>
+                    </aside>
+                    <div className="hero-media" aria-label="Video und Impressionen">
+                        <div className={`hero-video-wrapper floating-card ${isCelebrating ? "celebrating" : ""}`}>
+                            <video
+                                className="hero-video"
+                                controls
+                                playsInline
+                                preload="metadata"
+                                poster="https://images.unsplash.com/photo-1520607162513-77705c0f0d4a?auto=format&fit=crop&w=900&q=80"
+                                onPlay={triggerCelebration}
+                            >
+                                <source src="https://storage.googleapis.com/coverr-main/mp4/Money%20Calculations.mp4" type="video/mp4" />
+                                Dein Browser unterstützt kein HTML5 Video.
+                            </video>
+                        </div>
+                        <div className="media-thumbnails">
+                            {galleryImages.map((item) => (
+                                <figure key={item.alt} className={`media-thumb floating-card ${isCelebrating ? "celebrating" : ""}`}>
+                                    <img src={item.src} alt={item.alt} loading="lazy" />
+                                    <figcaption>{item.caption}</figcaption>
+                                </figure>
+                            ))}
+                        </div>
+                    </div>
                 </div>
             </div>
-            <aside className="hero-figure" aria-label="Feature Vorschau">
-                <div className="glow-orb" aria-hidden="true"></div>
-                <div className="hero-bubble floating-card">
-                    <span className="hero-bubble-title">Kontostand im Blick</span>
-                    <p>
-                        Unser Dashboard bündelt Bankkonten, Cash und Sparziele – ohne dass du Tabellen wälzen musst.
-                    </p>
-                </div>
-                <div className="hero-metric floating-card delay-1">
-                    <p>Monatsbudget</p>
-                    <strong>1.280 €</strong>
-                    <span className="metric-pill positive">+ 140 € übrig</span>
-                </div>
-                <div className="hero-progress floating-card delay-2" role="img" aria-label="Sparfortschritt">
-                    <div className="hero-progress-info">
-                        <span>Reise nach Porto</span>
-                        <span>65%</span>
-                    </div>
-                    <div className="progress-bar">
-                        <span className="progress-fill" style={{ width: "65%" }}></span>
-                    </div>
-                </div>
-            </aside>
-        </div>
-    </section>
-);
+        </section>
+    );
+};
 
 const PromiseSection = () => (
     <section id="about" className="promise-section fade-in" data-animate>
