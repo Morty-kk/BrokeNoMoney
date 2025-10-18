@@ -294,7 +294,12 @@ const ContactSection = () => {
         setStatus(null);
 
         try {
-            const response = await fetch("http://localhost:4000/api/signup", {
+            const apiBaseUrl =
+                typeof window !== "undefined" && window.location.hostname === "localhost"
+                    ? "http://localhost:4000"
+                    : "";
+
+            const response = await fetch(`${apiBaseUrl}/api/signup`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(formData),
