@@ -94,6 +94,33 @@ const journeySteps = [
     },
 ];
 
+const colorPalettes = [
+    {
+        id: "mint",
+        name: "Matcha Flow",
+        tagline: "Unser Signature-Look in frischen Grüntönen.",
+        swatches: ["#27a243", "#70d67f", "#eaf8ea"],
+    },
+    {
+        id: "sunset",
+        name: "Golden Hour",
+        tagline: "Warme Orange- und Kupfertöne für extra Glow.",
+        swatches: ["#ff7a59", "#ffb347", "#ffe0c7"],
+    },
+    {
+        id: "ocean",
+        name: "Ocean Breeze",
+        tagline: "Kühle Blautöne erinnern an den ersten Surftrip.",
+        swatches: ["#2563eb", "#38bdf8", "#dbeafe"],
+    },
+    {
+        id: "orchid",
+        name: "Purple Dream",
+        tagline: "Mutige Violetttöne, inspiriert von Neonlichtern.",
+        swatches: ["#8b5cf6", "#ec4899", "#fce7f3"],
+    },
+];
+
 const DarkModeToggle = ({ theme, onToggle }) => (
     <button
         type="button"
@@ -138,6 +165,69 @@ const NavBar = ({ theme, onToggleTheme }) => (
             </div>
         </div>
     </header>
+);
+
+const CustomizationSection = ({ selectedPalette, onSelectPalette }) => (
+    <section className="customization-section fade-in" data-animate>
+        <div className="customization-inner">
+            <div className="customization-copy">
+                <span className="tagline">Mach die Farben zu deinen</span>
+                <h2>Wähle den Vibe, der zu deinem Alltag passt.</h2>
+                <p>
+                    Ob Matcha-Green, Golden Hour oder Purple Dream – BrokeNoMore passt sich deinem Mood an. Tippe einfach auf
+                    eine Palette und beobachte, wie sich Interface, Buttons und Highlights live verändern. Deine Auswahl wird
+                    gespeichert und funktioniert natürlich auch im Light- und Dark-Mode.
+                </p>
+            </div>
+            <div className="customization-preview" role="region" aria-live="polite">
+                <div key={selectedPalette} className="preview-device" data-palette={selectedPalette}>
+                    <div className="preview-statusbar">
+                        <span>09:41</span>
+                        <span className="signal">◉◉◉◉</span>
+                    </div>
+                    <div className="preview-content">
+                        <div className="preview-card primary">
+                            <span className="preview-label">Budget übrig</span>
+                            <strong>+ 140 €</strong>
+                        </div>
+                        <div className="preview-card secondary">
+                            <span className="preview-label">Sparziel Porto</span>
+                            <div className="preview-progress">
+                                <span className="preview-progress-fill"></span>
+                            </div>
+                            <span className="preview-percentage">65%</span>
+                        </div>
+                        <div className="preview-card tertiary">
+                            <span className="preview-label">Heute erledigt</span>
+                            <span className="preview-chip">2/3 Checks</span>
+                        </div>
+                    </div>
+                </div>
+                <div className="palette-picker" role="list">
+                    {colorPalettes.map((palette) => (
+                        <button
+                            key={palette.id}
+                            type="button"
+                            role="listitem"
+                            className={`palette-option ${palette.id === selectedPalette ? "is-active" : ""}`}
+                            onClick={() => onSelectPalette(palette.id)}
+                            aria-pressed={palette.id === selectedPalette}
+                        >
+                            <span className="palette-swirls" aria-hidden="true">
+                                {palette.swatches.map((swatch) => (
+                                    <span key={swatch} style={{ background: swatch }}></span>
+                                ))}
+                            </span>
+                            <span className="palette-meta">
+                                <strong>{palette.name}</strong>
+                                <span>{palette.tagline}</span>
+                            </span>
+                        </button>
+                    ))}
+                </div>
+            </div>
+        </div>
+    </section>
 );
 
 const HeroSection = () => {
@@ -513,7 +603,24 @@ const App = () => {
         []
     );
 
+    const getPreferredPalette = useMemo(
+        () => () => {
+            if (typeof window === "undefined") {
+                return "mint";
+            }
+
+            const stored = window.localStorage.getItem("bnm-palette");
+            if (stored && colorPalettes.some((palette) => palette.id === stored)) {
+                return stored;
+            }
+
+            return "mint";
+        },
+        []
+    );
+
     const [theme, setTheme] = useState(getPreferredTheme);
+    const [palette, setPalette] = useState(getPreferredPalette);
 
     useEffect(() => {
         document.body.dataset.theme = theme;
@@ -533,10 +640,19 @@ const App = () => {
         return () => mediaQuery.removeEventListener("change", handler);
     }, []);
 
+    useEffect(() => {
+        document.body.dataset.palette = palette;
+        window.localStorage.setItem("bnm-palette", palette);
+    }, [palette]);
+
     useScrollAnimations();
 
     const toggleTheme = () => {
         setTheme((prev) => (prev === "dark" ? "light" : "dark"));
+    };
+
+    const handleSelectPalette = (nextPalette) => {
+        setPalette(nextPalette);
     };
 
     return (
@@ -544,6 +660,7 @@ const App = () => {
             <NavBar theme={theme} onToggleTheme={toggleTheme} />
             <main>
                 <HeroSection />
+                <CustomizationSection selectedPalette={palette} onSelectPalette={handleSelectPalette} />
                 <PromiseSection />
                 <JourneySection />
                 <StatSection />
