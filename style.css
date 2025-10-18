@@ -614,6 +614,24 @@ body[data-theme="dark"] .metric-pill {
     left: 85%;
 }
 
+@media (prefers-reduced-motion: reduce) {
+    .glow-orb,
+    .floating-card,
+    .floating-card.delay-1,
+    .floating-card.delay-2,
+    .hero-figure,
+    .confetti-piece,
+    .logo-glow,
+    [data-animate] {
+        animation: none !important;
+        transition-duration: 0.01ms !important;
+    }
+
+    .animated-button::after {
+        transition: none;
+    }
+}
+
 .promise-section,
 .journey-section,
 .stats-section,

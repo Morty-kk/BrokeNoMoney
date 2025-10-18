@@ -1,4 +1,4 @@
-const { useEffect, useMemo, useState } = React;
+const { useEffect, useMemo, useRef, useState } = React;
 
 const navLinks = [
     { label: "Services", href: "#services" },
@@ -162,10 +162,50 @@ const NavBar = ({ theme, onToggleTheme }) => (
 
 const HeroSection = () => {
     const [isCelebrating, setIsCelebrating] = useState(false);
+    const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+    const celebrationTimeoutRef = useRef(null);
+
+    useEffect(() => {
+        if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
+            return undefined;
+        }
+
+        const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+        setPrefersReducedMotion(mediaQuery.matches);
+
+        const handleChange = (event) => {
+            setPrefersReducedMotion(event.matches);
+        };
+
+        if (typeof mediaQuery.addEventListener === "function") {
+            mediaQuery.addEventListener("change", handleChange);
+            return () => {
+                mediaQuery.removeEventListener("change", handleChange);
+            };
+        }
+
+        if (typeof mediaQuery.addListener === "function") {
+            mediaQuery.addListener(handleChange);
+            return () => {
+                mediaQuery.removeListener(handleChange);
+            };
+        }
+
+        return undefined;
+    }, []);
+
+    useEffect(() => {
+        return () => {
+            if (celebrationTimeoutRef.current) {
+                window.clearTimeout(celebrationTimeoutRef.current);
+            }
+        };
+    }, []);
 
     const handleCelebrate = (event) => {
         const { currentTarget, nativeEvent } = event;
-        if (currentTarget && nativeEvent) {
+
+        if (!prefersReducedMotion && currentTarget && nativeEvent) {
             const rect = currentTarget.getBoundingClientRect();
             const x = ((nativeEvent.clientX - rect.left) / rect.width) * 100;
             const y = ((nativeEvent.clientY - rect.top) / rect.height) * 100;
@@ -173,11 +213,23 @@ const HeroSection = () => {
             currentTarget.style.setProperty("--y", `${y}%`);
         }
 
-        setIsCelebrating(true);
-        window.location.hash = "#about";
-        window.setTimeout(() => {
-            setIsCelebrating(false);
-        }, 1400);
+        if (!prefersReducedMotion) {
+            setIsCelebrating(true);
+            if (celebrationTimeoutRef.current) {
+                window.clearTimeout(celebrationTimeoutRef.current);
+            }
+            celebrationTimeoutRef.current = window.setTimeout(() => {
+                setIsCelebrating(false);
+                celebrationTimeoutRef.current = null;
+            }, 1400);
+        }
+
+        const aboutSection = typeof document !== "undefined" ? document.getElementById("about") : null;
+        if (aboutSection && typeof aboutSection.scrollIntoView === "function") {
+            aboutSection.scrollIntoView({ behavior: prefersReducedMotion ? "auto" : "smooth", block: "start" });
+        } else if (typeof window !== "undefined") {
+            window.location.hash = "#about";
+        }
     };
 
     return (
@@ -205,7 +257,11 @@ const HeroSection = () => {
                         <a className="cta" href="#contact">
                             Ich will starten
                         </a>
-                        <button className={`ghost-button animated-button ${isCelebrating ? "is-active" : ""}`} onClick={handleCelebrate}>
+                        <button
+                            type="button"
+                            className={`ghost-button animated-button ${isCelebrating ? "is-active" : ""}`}
+                            onClick={handleCelebrate}
+                        >
                             Mehr erfahren
                         </button>
                     </div>
@@ -510,7 +566,13 @@ const ContactSection = () => {
                         {isSubmitting ? "Wird gesendet…" : "Kostenloses Onboarding sichern"}
                     </button>
                     {status && (
-                        <p className={`form-status ${status.type === "success" ? "success" : "error"}`}>{status.message}</p>
+                        <p
+                            role={status.type === "success" ? "status" : "alert"}
+                            aria-live={status.type === "success" ? "polite" : "assertive"}
+                            className={`form-status ${status.type === "success" ? "success" : "error"}`}
+                        >
+                            {status.message}
+                        </p>
                     )}
                 </form>
             </div>
