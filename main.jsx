@@ -277,7 +277,7 @@ const ServicesSection = () => (
 );
 
 const ContactSection = () => {
-    const [formData, setFormData] = useState({ name: "", email: "", password: "", message: "" });
+    const [formData, setFormData] = useState({ name: "", email: "", message: "" });
     const [status, setStatus] = useState(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -306,7 +306,7 @@ const ContactSection = () => {
             }
 
             setStatus({ type: "success", message: "Danke! Wir haben dir gerade eine Begrüßungs-Mail geschickt." });
-            setFormData({ name: "", email: "", password: "", message: "" });
+            setFormData({ name: "", email: "", message: "" });
         } catch (error) {
             setStatus({ type: "error", message: error.message });
         } finally {
@@ -347,18 +347,6 @@ const ContactSection = () => {
                             />
                         </label>
                     </div>
-                    <label>
-                        <span>Passwort</span>
-                        <input
-                            name="password"
-                            type="password"
-                            required
-                            minLength={8}
-                            value={formData.password}
-                            onChange={handleChange}
-                            placeholder="Mindestens 8 Zeichen"
-                        />
-                    </label>
                     <label>
                         <span>Nachricht (optional)</span>
                         <textarea

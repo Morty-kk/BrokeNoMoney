@@ -1,6 +1,5 @@
 const express = require('express');
 const cors = require('cors');
-const bcrypt = require('bcrypt');
 const path = require('path');
 const sqlite3 = require('sqlite3').verbose();
 
@@ -19,11 +18,10 @@ const db = new sqlite3.Database(dbPath, (error) => {
 
 db.serialize(() => {
     db.run(
-        `CREATE TABLE IF NOT EXISTS users (
+        `CREATE TABLE IF NOT EXISTS contacts (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL,
-            email TEXT NOT NULL UNIQUE,
-            password_hash TEXT NOT NULL,
+            email TEXT NOT NULL,
             message TEXT,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )`,
@@ -31,7 +29,7 @@ db.serialize(() => {
             if (error) {
                 console.error('❌ Tabelle konnte nicht erstellt werden:', error.message);
             } else {
-                console.log('✅ Tabelle "users" ist bereit.');
+                console.log('✅ Tabelle "contacts" ist bereit.');
             }
         }
     );
@@ -56,17 +54,13 @@ app.use(
 
 app.use(express.json({ limit: '10kb' }));
 
-const validatePayload = ({ name, email, password }) => {
-    if (!name || !email || !password) {
+const validatePayload = ({ name, email }) => {
+    if (!name || !email) {
         return 'Bitte fülle alle Pflichtfelder aus.';
     }
 
     if (!/^\S+@\S+\.\S+$/.test(email)) {
         return 'Bitte gib eine gültige E-Mail-Adresse an.';
-    }
-
-    if (password.length < 8) {
-        return 'Das Passwort muss mindestens 8 Zeichen lang sein.';
     }
 
     return null;
@@ -76,36 +70,26 @@ app.get('/api/health', (_req, res) => {
     res.json({ status: 'ok', time: new Date().toISOString() });
 });
 
-app.post('/api/signup', async (req, res) => {
-    const { name, email, password, message = null } = req.body || {};
+app.post('/api/signup', (req, res) => {
+    const { name, email, message = null } = req.body || {};
 
-    const validationError = validatePayload({ name, email, password });
+    const validationError = validatePayload({ name, email });
     if (validationError) {
         return res.status(400).json({ message: validationError });
     }
 
-    try {
-        const passwordHash = await bcrypt.hash(password, 10);
-        db.run(
-            'INSERT INTO users (name, email, password_hash, message) VALUES (?, ?, ?, ?)',
-            [name.trim(), email.toLowerCase().trim(), passwordHash, message],
-            function handleInsert(error) {
-                if (error) {
-                    if (error.code === 'SQLITE_CONSTRAINT') {
-                        return res.status(409).json({ message: 'Diese E-Mail ist bereits registriert.' });
-                    }
-
-                    console.error('❌ Fehler beim Speichern des Nutzers:', error.message);
-                    return res.status(500).json({ message: 'Beim Speichern ist ein Fehler passiert. Versuch es bitte später erneut.' });
-                }
-
-                return res.status(201).json({ id: this.lastID, name, email });
+    db.run(
+        'INSERT INTO contacts (name, email, message) VALUES (?, ?, ?)',
+        [name.trim(), email.toLowerCase().trim(), message],
+        function handleInsert(error) {
+            if (error) {
+                console.error('❌ Fehler beim Speichern der Anfrage:', error.message);
+                return res.status(500).json({ message: 'Beim Speichern ist ein Fehler passiert. Versuch es bitte später erneut.' });
             }
-        );
-    } catch (error) {
-        console.error('❌ Fehler beim Hashen des Passworts:', error.message);
-        res.status(500).json({ message: 'Das hat leider nicht geklappt. Bitte versuch es später noch einmal.' });
-    }
+
+            return res.status(201).json({ id: this.lastID, name, email });
+        }
+    );
 });
 
 app.use((error, _req, res, _next) => {
