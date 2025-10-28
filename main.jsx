@@ -1,676 +1,620 @@
-const { useEffect, useMemo, useState, useRef } = React;
+const { useMemo, useEffect, useState } = React;
 
-const navLinks = [
-    { label: "Services", href: "#services" },
-    { label: "Packs", href: "#solutions" },
-    { label: "About", href: "#about" },
-    { label: "Kontakt", href: "#contact" },
-];
+const patientProfile = {
+    name: "Sara Neumann",
+    pronouns: "sie/ihr",
+    birthdate: "1989-08-12",
+    lastUpdated: "05. Mai 2024 um 21:45 Uhr",
+    emergencyId: "DE-EP-4820",
+    insurance: "Techniker Krankenkasse – 010987654",
+    address: "Bergstraße 12, 50676 Köln",
+    language: "Deutsch, Englisch",
+    bloodType: "0 Rh+",
+    organDonor: true,
+    advancedDirective: "Patientenverfügung und Vollmachten in digitaler Mappe (Stand 02/2024)",
+    chronicConditions: [
+        { label: "Asthma bronchiale (mittelgradig)" },
+        { label: "Autoimmunthyreoiditis (Hashimoto)" },
+    ],
+    allergies: [
+        { label: "Erdnüsse", reaction: "Anaphylaxie – Adrenalin-Autoinjektor verfügbar" },
+        { label: "Penicillin", reaction: "Schwere Atemnot" },
+    ],
+    precautions: [
+        "Adrenalin-Autoinjektor immer in der Tasche (Innenfach links)",
+        "Keine Betablocker verabreichen (Asthma)",
+        "Sauerstoffgabe bei SpO₂ < 94 %"
+    ],
+    medications: [
+        {
+            name: "Salbutamol Inhalation",
+            dosage: "2 Hübe bei Bedarf (max. 6/Tag)",
+            schedule: ["08:00", "20:00"],
+            critical: true,
+            note: "Bei akuter Atemnot sofort einsetzen",
+        },
+        {
+            name: "Levothyroxin",
+            dosage: "75 µg morgens nüchtern",
+            schedule: ["06:30"],
+            critical: false,
+            note: "Einnahme mindestens 30 Min vor dem Frühstück",
+        },
+        {
+            name: "Cetirizin",
+            dosage: "10 mg bei allergischer Reaktion",
+            schedule: ["Bedarf"],
+            critical: false,
+            note: "Kann mit Autoinjektor kombiniert werden",
+        },
+    ],
+    emergencyContacts: [
+        {
+            name: "Jonas Neumann",
+            relation: "Partner",
+            phone: "+49 162 1234567",
+            availability: "24/7 erreichbar",
+        },
+        {
+            name: "Miriam Falk",
+            relation: "Mutter",
+            phone: "+49 151 9876543",
+            availability: "Ab 07:00 Uhr erreichbar",
+        },
+    ],
+    medicalTeam: [
+        {
+            name: "Dr. Eva Kraus",
+            specialty: "Hausärztin",
+            phone: "+49 221 450120",
+            institution: "Praxis am Stadtgarten, Köln",
+        },
+        {
+            name: "Dr. Noah Langer",
+            specialty: "Pulmologe",
+            phone: "+49 221 334455",
+            institution: "Lungenzentrum Köln Süd",
+        },
+    ],
+    devices: [
+        {
+            label: "Adrenalin-Autoinjektor",
+            detail: "Epinephrin 0,3 mg – gültig bis 11/2024",
+        },
+        {
+            label: "Peak-Flow-Meter",
+            detail: "Referenzbereich 420–470 L/min",
+        },
+        {
+            label: "Smartwatch",
+            detail: "Sendet Herzfrequenz & SpO₂ in Echtzeit",
+        },
+    ],
+    vaccinations: [
+        { label: "Influenza", status: "Aktuell (2023/24)" },
+        { label: "COVID-19", status: "Auffrischung 10/2023" },
+        { label: "Tetanus", status: "gültig bis 08/2028" },
+    ],
+    documents: [
+        {
+            type: "Medikamentenplan (PDF)",
+            updated: "05.05.2024",
+            url: "#medplan",
+        },
+        {
+            type: "Patientenverfügung",
+            updated: "14.02.2024",
+            url: "#directive",
+        },
+        {
+            type: "Allergiepass",
+            updated: "18.04.2024",
+            url: "#allergy",
+        },
+    ],
+    vitalParameters: [
+        { label: "Körpergröße", value: "170 cm" },
+        { label: "Gewicht", value: "63 kg" },
+        { label: "Blutdruck (Ruhe)", value: "118/76 mmHg" },
+        { label: "Puls (Ruhe)", value: "68 bpm" },
+        { label: "Sauerstoffsättigung", value: "97 %" },
+    ],
+    lastMeasurements: [
+        { title: "Peak-Flow", value: "430 L/min", timestamp: "05.05.2024, 08:05" },
+        { title: "SpO₂", value: "97 %", timestamp: "05.05.2024, 08:00" },
+        { title: "Puls", value: "72 bpm", timestamp: "05.05.2024, 08:00" },
+    ],
+    timeline: [
+        {
+            icon: "🫁",
+            date: "05.05.2024",
+            title: "Asthma-Kontrolle",
+            description: "Peak-Flow stabil, keine Auffälligkeiten. Inhalator neu bestellt.",
+        },
+        {
+            icon: "⚠️",
+            date: "12.04.2024",
+            title: "Notaufnahme Köln Süd",
+            description: "Schwere allergische Reaktion nach Thai-Essen. Adrenalin-Autoinjektor verabreicht.",
+        },
+        {
+            icon: "💊",
+            date: "02.03.2024",
+            title: "Medikamentenplan aktualisiert",
+            description: "Levothyroxin-Dosis auf 75 µg angepasst. Kontrolltermin in 6 Wochen.",
+        },
+    ],
+    notes: [
+        "Patientin reagiert sensibel auf stark parfümierte Aerosole.",
+        "Bei Eingriffen Prämedikation gegen Übelkeit einplanen.",
+        "Spricht gut auf ruhige, strukturierte Anweisungen an.",
+    ],
+};
 
-const heroHighlights = [
-    "Budgets, Sparziele und Kontostände an einem Ort.",
-    "Visualisierte Fortschritte, die motivieren statt stressen.",
-    "Persönliche Routinen, die du in deinen Alltag integrieren kannst.",
-];
+const calculateAge = (birthdate) => {
+    const date = new Date(birthdate);
+    const today = new Date();
+    let age = today.getFullYear() - date.getFullYear();
+    const monthDiff = today.getMonth() - date.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < date.getDate())) {
+        age -= 1;
+    }
+    return age;
+};
 
-const galleryImages = [
-    {
-        src: "https://images.unsplash.com/photo-1556740749-887f6717d7e4?auto=format&fit=crop&w=900&q=80",
-        alt: "Junge Person markiert Ziele in einem Notizbuch",
-        caption: "Step-by-step Pläne statt Chaos im Kopf",
-    },
-    {
-        src: "https://images.unsplash.com/photo-1545239351-1141bd82e8a6?auto=format&fit=crop&w=900&q=80",
-        alt: "Freunde feiern gemeinsam kleine Finanz-Erfolge",
-        caption: "Celebrations, die sich echt anfühlen",
-    },
-    {
-        src: "https://images.unsplash.com/photo-1520607162513-77705c0f0d4a?auto=format&fit=crop&w=900&q=80",
-        alt: "Tablet mit Finanz-Dashboard im warmen Licht",
-        caption: "Visuals, die deine Fortschritte sichtbar machen",
-    },
-];
-
-const celebrationParticles = Array.from({ length: 6 }, (_, index) => index);
-
-const serviceCards = [
-    {
-        title: "Budget-Check",
-        description:
-            "Erstelle realistische Budgets und bleib automatisch in deinem Rahmen – mit klaren Monats- und Wochenlimits.",
-        points: ["Smartes Tracking", "Sofortige Benachrichtigungen"],
-    },
-    {
-        title: "Sparziele",
-        description:
-            "Verwandele Ziele in Meilensteine. Wir erinnern dich, pushen dich sanft und zeigen, wie du schneller fertig wirst.",
-        points: ["Fortschritts-Visuals", "Persönliche Hacks"],
-    },
-    {
-        title: "Mindful Money",
-        description:
-            "Finde heraus, wofür du wirklich Geld ausgeben möchtest und was nur Gewohnheit ist – ganz ohne Verbote.",
-        points: ["Reflexions-Prompts", "Community-Vibes"],
-    },
-];
-
-const statCards = [
-    { value: "3.100+", label: "junge Leute haben ihren Finanzcheck gemacht" },
-    { value: "92%", label: "bleiben über 6 Monate aktiv am Ball" },
-    { value: "4.7/5", label: "Durchschnittliche Zufriedenheit" },
-];
-
-const testimonialList = [
-    {
-        quote:
-            "Ich habe endlich das Gefühl, dass meine Finanzen nicht gegen mich arbeiten. Das Tool nimmt mir die Angst vor dem Monatsende.",
-        author: "Jasmin, 22",
-    },
-    {
-        quote:
-            "Die täglichen Micro-Challenges machen Sparen irgendwie spielerisch. Und das Dashboard sieht einfach gut aus.",
-        author: "Leon, 19",
-    },
-];
-
-const journeySteps = [
-    {
-        title: "Analyse",
-        description:
-            "Konto anbinden, Ziele auswählen und in wenigen Minuten verstehen, wohin dein Geld wirklich fließt.",
-        icon: "🔍",
-    },
-    {
-        title: "Coachings",
-        description:
-            "Kurze, snackbare Lernnuggets pushen dich mit konkreten Aufgaben durch deinen Monat.",
-        icon: "🎯",
-    },
-    {
-        title: "Celebrations",
-        description:
-            "Check-ins belohnen dich mit Animationen, Badges und realistischer Motivation statt Druck.",
-        icon: "🎉",
-    },
-];
-
-const colorPalettes = [
-    {
-        id: "mint",
-        name: "Matcha Flow",
-        tagline: "Unser Signature-Look in frischen Grüntönen.",
-        swatches: ["#27a243", "#70d67f", "#eaf8ea"],
-    },
-    {
-        id: "sunset",
-        name: "Golden Hour",
-        tagline: "Warme Orange- und Kupfertöne für extra Glow.",
-        swatches: ["#ff7a59", "#ffb347", "#ffe0c7"],
-    },
-    {
-        id: "ocean",
-        name: "Ocean Breeze",
-        tagline: "Kühle Blautöne erinnern an den ersten Surftrip.",
-        swatches: ["#2563eb", "#38bdf8", "#dbeafe"],
-    },
-    {
-        id: "orchid",
-        name: "Purple Dream",
-        tagline: "Mutige Violetttöne, inspiriert von Neonlichtern.",
-        swatches: ["#8b5cf6", "#ec4899", "#fce7f3"],
-    },
-];
-
-const DarkModeToggle = ({ theme, onToggle }) => (
-    <button
-        type="button"
-        className="dark-mode-toggle"
-        onClick={onToggle}
-        aria-pressed={theme === "dark"}
-        aria-label={theme === "dark" ? "Hellmodus aktivieren" : "Darkmode aktivieren"}
-    >
-        <span className="dark-mode-icon" aria-hidden="true">
-            {theme === "dark" ? "☀️" : "🌙"}
-        </span>
-        <span className="dark-mode-label">{theme === "dark" ? "Light" : "Dark"}</span>
-    </button>
+const Panel = ({ id, title, icon, tone = "default", children, description }) => (
+    <section className={`panel panel--${tone}`} aria-labelledby={id}>
+        <header className="panel__header">
+            <span className="panel__icon" aria-hidden="true">{icon}</span>
+            <div className="panel__title-group">
+                <h2 id={id}>{title}</h2>
+                {description && <p className="panel__description">{description}</p>}
+            </div>
+        </header>
+        <div className="panel__body">{children}</div>
+    </section>
 );
 
-const NavBar = ({ theme, onToggleTheme }) => (
-    <header className="header">
-        <div className="nav-container">
-            <a href="#home" className="logo">
-                <span aria-hidden="true" className="logo-icon">
-                    <span className="logo-monogram">BN</span>
-                </span>
-                <span className="logo-wordmark">
-                    <span className="logo-strong">Broke</span>
-                    <span className="logo-light">NoMore</span>
-                </span>
-            </a>
-            <nav aria-label="Hauptnavigation" className="nav-links">
-                <ul>
-                    {navLinks.map((link) => (
-                        <li key={link.href}>
-                            <a href={link.href}>{link.label}</a>
+const InfoTag = ({ label, tone = "default" }) => (
+    <span className={`info-tag info-tag--${tone}`}>{label}</span>
+);
+
+const Sensitive = ({ reveal, children }) => (
+    <span className="sensitive-wrapper">
+        <span className={`sensitive ${reveal ? "sensitive--visible" : ""}`} aria-hidden={!reveal}>
+            {children}
+        </span>
+        {!reveal && <span className="sr-only">Vertrauliche Angaben verborgen</span>}
+    </span>
+);
+
+const PatientSummary = ({ profile, showSensitive }) => {
+    const age = useMemo(() => calculateAge(profile.birthdate), [profile.birthdate]);
+
+    const formattedBirthdate = useMemo(() => {
+        const date = new Date(profile.birthdate);
+        return date.toLocaleDateString("de-DE", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+        });
+    }, [profile.birthdate]);
+
+    return (
+        <section className="patient-summary" aria-labelledby="patient-summary-heading">
+            <div className="patient-summary__identity">
+                <div className="patient-summary__avatar" aria-hidden="true">
+                    {profile.name.charAt(0)}
+                </div>
+                <div>
+                    <p className="patient-summary__eyebrow">Notfall-Pass</p>
+                    <h2 id="patient-summary-heading">{profile.name}</h2>
+                    <p className="patient-summary__meta">
+                        {profile.pronouns} · {age} Jahre
+                    </p>
+                </div>
+                <div className="patient-summary__id">
+                    <span className="patient-summary__id-label">Notfall-ID</span>
+                    <Sensitive reveal={showSensitive}>{profile.emergencyId}</Sensitive>
+                </div>
+            </div>
+            <dl className="patient-summary__facts">
+                <div>
+                    <dt>Geburtsdatum</dt>
+                    <dd>{formattedBirthdate}</dd>
+                </div>
+                <div>
+                    <dt>Blutgruppe</dt>
+                    <dd>{profile.bloodType}</dd>
+                </div>
+                <div>
+                    <dt>Sprache</dt>
+                    <dd>{profile.language}</dd>
+                </div>
+                <div>
+                    <dt>Versicherung</dt>
+                    <dd>
+                        <Sensitive reveal={showSensitive}>{profile.insurance}</Sensitive>
+                    </dd>
+                </div>
+                <div>
+                    <dt>Adresse</dt>
+                    <dd>
+                        <Sensitive reveal={showSensitive}>{profile.address}</Sensitive>
+                    </dd>
+                </div>
+                <div>
+                    <dt>Organspende</dt>
+                    <dd>{profile.organDonor ? "Ja" : "Nein"}</dd>
+                </div>
+                <div>
+                    <dt>Patientenverfügung</dt>
+                    <dd>{profile.advancedDirective}</dd>
+                </div>
+            </dl>
+            <div className="patient-summary__actions" role="group" aria-label="Schnellaktionen">
+                <a className="action-button action-button--primary" href="tel:112">
+                    <span aria-hidden="true">🚑</span>
+                    Notruf 112
+                </a>
+                <a className="action-button" href="tel:+491621234567">
+                    <span aria-hidden="true">📞</span>
+                    Partner anrufen
+                </a>
+                <button className="action-button" type="button">
+                    <span aria-hidden="true">🖨️</span>
+                    Pass drucken
+                </button>
+                <button className="action-button" type="button">
+                    <span aria-hidden="true">🔗</span>
+                    Sicher teilen
+                </button>
+            </div>
+        </section>
+    );
+};
+
+const CriticalInfo = ({ profile }) => (
+    <Panel
+        id="critical-info"
+        title="Akute Hinweise"
+        icon="⚠️"
+        tone="danger"
+        description="Informationen mit höchster Priorität für Ersthelfende"
+    >
+        <div className="critical-grid">
+            <div className="critical-card">
+                <h3>Allergien</h3>
+                <ul className="critical-list">
+                    {profile.allergies.map((item) => (
+                        <li key={item.label}>
+                            <strong>{item.label}</strong>
+                            <span>{item.reaction}</span>
                         </li>
                     ))}
                 </ul>
-            </nav>
-            <div className="nav-actions">
-                <DarkModeToggle theme={theme} onToggle={onToggleTheme} />
-                <a className="contact-link" href="#contact">
-                    Kontakt
-                </a>
             </div>
-        </div>
-    </header>
-);
-
-const CustomizationSection = ({ selectedPalette, onSelectPalette }) => (
-    <section className="customization-section fade-in" data-animate>
-        <div className="customization-inner">
-            <div className="customization-copy">
-                <span className="tagline">Mach die Farben zu deinen</span>
-                <h2>Wähle den Vibe, der zu deinem Alltag passt.</h2>
-                <p>
-                    Ob Matcha-Green, Golden Hour oder Purple Dream – BrokeNoMore passt sich deinem Mood an. Tippe einfach auf
-                    eine Palette und beobachte, wie sich Interface, Buttons und Highlights live verändern. Deine Auswahl wird
-                    gespeichert und funktioniert natürlich auch im Light- und Dark-Mode.
-                </p>
-            </div>
-            <div className="customization-preview" role="region" aria-live="polite">
-                <div key={selectedPalette} className="preview-device" data-palette={selectedPalette}>
-                    <div className="preview-statusbar">
-                        <span>09:41</span>
-                        <span className="signal">◉◉◉◉</span>
-                    </div>
-                    <div className="preview-content">
-                        <div className="preview-card primary">
-                            <span className="preview-label">Budget übrig</span>
-                            <strong>+ 140 €</strong>
-                        </div>
-                        <div className="preview-card secondary">
-                            <span className="preview-label">Sparziel Porto</span>
-                            <div className="preview-progress">
-                                <span className="preview-progress-fill"></span>
-                            </div>
-                            <span className="preview-percentage">65%</span>
-                        </div>
-                        <div className="preview-card tertiary">
-                            <span className="preview-label">Heute erledigt</span>
-                            <span className="preview-chip">2/3 Checks</span>
-                        </div>
-                    </div>
-                </div>
-                <div className="palette-picker" role="list">
-                    {colorPalettes.map((palette) => (
-                        <button
-                            key={palette.id}
-                            type="button"
-                            role="listitem"
-                            className={`palette-option ${palette.id === selectedPalette ? "is-active" : ""}`}
-                            onClick={() => onSelectPalette(palette.id)}
-                            aria-pressed={palette.id === selectedPalette}
-                        >
-                            <span className="palette-swirls" aria-hidden="true">
-                                {palette.swatches.map((swatch) => (
-                                    <span key={swatch} style={{ background: swatch }}></span>
-                                ))}
-                            </span>
-                            <span className="palette-meta">
-                                <strong>{palette.name}</strong>
-                                <span>{palette.tagline}</span>
-                            </span>
-                        </button>
+            <div className="critical-card">
+                <h3>Diagnosen</h3>
+                <ul className="critical-list">
+                    {profile.chronicConditions.map((item) => (
+                        <li key={item.label}>{item.label}</li>
                     ))}
-                </div>
+                </ul>
+            </div>
+            <div className="critical-card">
+                <h3>Besondere Hinweise</h3>
+                <ul className="critical-list">
+                    {profile.precautions.map((item) => (
+                        <li key={item}>{item}</li>
+                    ))}
+                </ul>
             </div>
         </div>
-    </section>
+    </Panel>
 );
 
-const HeroSection = () => {
-    const [isCelebrating, setIsCelebrating] = useState(false);
-    const celebrationTimeoutRef = useRef(null);
-
-    useEffect(() => {
-        return () => {
-            if (celebrationTimeoutRef.current) {
-                clearTimeout(celebrationTimeoutRef.current);
-            }
-        };
-    }, []);
-
-    const triggerCelebration = () => {
-        if (celebrationTimeoutRef.current) {
-            clearTimeout(celebrationTimeoutRef.current);
-        }
-
-        setIsCelebrating(true);
-        celebrationTimeoutRef.current = setTimeout(() => {
-            setIsCelebrating(false);
-        }, 1400);
-    };
-
-    const handleLearnMore = () => {
-        triggerCelebration();
-        window.location.hash = "#about";
-    };
-
-    return (
-        <section id="home" className="hero-section fade-in" data-animate>
-            <div className={`celebration-sparks ${isCelebrating ? "is-active" : ""}`} aria-hidden="true">
-                {celebrationParticles.map((particle) => (
-                    <span key={particle}></span>
-                ))}
-            </div>
-            <div className={`hero-inner ${isCelebrating ? "is-celebrating" : ""}`}>
-                <div className="hero-text">
-                    <span className="tagline">Finanzen, aber endlich verständlich</span>
-                    <h1>
-                        Schon wieder ist am Monatsende das Konto leer?
-                        <span className="accent"> Wir ändern das – mit Tools, die wirklich zu deinem Leben passen.</span>
-                    </h1>
-                    <p>
-                        Vergiss starre Tabellen und Motivation, die nach zwei Wochen verpufft. BrokeNoMore zeigt dir, wie du dein Geld bewusst planst,
-                        Dringendes und Wichtiges trennst und trotzdem Spaß im Leben hast.
-                    </p>
-                    <div className="hero-highlights">
-                        {heroHighlights.map((item) => (
-                            <div key={item} className="highlight-card">
-                                <span className="dot" aria-hidden="true"></span>
-                                <p>{item}</p>
-                            </div>
-                        ))}
+const UpcomingMedication = ({ upcoming }) => (
+    <div className="medication-upcoming" role="status" aria-live="polite">
+        <h3>Nächste Einnahmen</h3>
+        <ul>
+            {upcoming.map((entry) => (
+                <li key={`${entry.medication.name}-${entry.timeLabel}`}>
+                    <div>
+                        <strong>{entry.medication.name}</strong>
+                        <span>{entry.timeLabel} Uhr</span>
                     </div>
-                    <div className="hero-actions">
-                        <a className="cta" href="#contact" onClick={triggerCelebration}>
-                            Ich will starten
-                        </a>
-                        <button className="ghost-button" type="button" onClick={handleLearnMore}>
-                            Mehr erfahren
-                        </button>
-                        <button className="celebrate-button" type="button" onClick={triggerCelebration}>
-                            Animation starten
-                        </button>
-                    </div>
-                </div>
-                <div className="hero-visuals">
-                    <aside className="hero-figure" aria-label="Feature Vorschau">
-                        <div className="glow-orb" aria-hidden="true"></div>
-                        <div className={`hero-bubble floating-card ${isCelebrating ? "celebrating" : ""}`}>
-                            <span className="hero-bubble-title">Kontostand im Blick</span>
-                            <p>
-                                Unser Dashboard bündelt Bankkonten, Cash und Sparziele – ohne dass du Tabellen wälzen musst.
-                            </p>
-                        </div>
-                        <div className={`hero-metric floating-card delay-1 ${isCelebrating ? "celebrating" : ""}`}>
-                            <p>Monatsbudget</p>
-                            <strong>1.280 €</strong>
-                            <span className="metric-pill positive">+ 140 € übrig</span>
-                        </div>
-                        <div
-                            className={`hero-progress floating-card delay-2 ${isCelebrating ? "celebrating" : ""}`}
-                            role="img"
-                            aria-label="Sparfortschritt"
-                        >
-                            <div className="hero-progress-info">
-                                <span>Reise nach Porto</span>
-                                <span>65%</span>
-                            </div>
-                            <div className="progress-bar">
-                                <span className="progress-fill" style={{ width: "65%" }}></span>
-                            </div>
-                        </div>
-                    </aside>
-                    <div className="hero-media" aria-label="Video und Impressionen">
-                        <div className={`hero-video-wrapper floating-card ${isCelebrating ? "celebrating" : ""}`}>
-                            <video
-                                className="hero-video"
-                                controls
-                                playsInline
-                                preload="metadata"
-                                poster="https://images.unsplash.com/photo-1520607162513-77705c0f0d4a?auto=format&fit=crop&w=900&q=80"
-                                onPlay={triggerCelebration}
-                            >
-                                <source src="https://storage.googleapis.com/coverr-main/mp4/Money%20Calculations.mp4" type="video/mp4" />
-                                Dein Browser unterstützt kein HTML5 Video.
-                            </video>
-                        </div>
-                        <div className="media-thumbnails">
-                            {galleryImages.map((item) => (
-                                <figure key={item.alt} className={`media-thumb floating-card ${isCelebrating ? "celebrating" : ""}`}>
-                                    <img src={item.src} alt={item.alt} loading="lazy" />
-                                    <figcaption>{item.caption}</figcaption>
-                                </figure>
+                    <span className="medication-upcoming__due">{entry.relative}</span>
+                </li>
+            ))}
+        </ul>
+    </div>
+);
+
+const MedicationSection = ({ medications, upcoming }) => (
+    <Panel
+        id="medication-plan"
+        title="Medikamentenplan"
+        icon="💊"
+        description="Regelmäßige und Bedarfsmedikation mit Dosierung"
+    >
+        {upcoming.length > 0 && <UpcomingMedication upcoming={upcoming} />}
+        <div className="medication-grid">
+            {medications.map((medication) => (
+                <article
+                    key={medication.name}
+                    className={`medication-card ${medication.critical ? "medication-card--critical" : ""}`}
+                >
+                    <header>
+                        <h3>{medication.name}</h3>
+                        {medication.critical && <InfoTag label="kritisch" tone="danger" />}
+                    </header>
+                    <p className="medication-card__dosage">{medication.dosage}</p>
+                    <div className="medication-card__schedule">
+                        <span>Einnahmezeiten:</span>
+                        <div className="medication-card__chips">
+                            {medication.schedule.map((time) => (
+                                <span key={time} className="pill">
+                                    {time}
+                                </span>
                             ))}
                         </div>
                     </div>
-                </div>
-            </div>
-        </section>
-    );
-};
-
-const PromiseSection = () => (
-    <section id="about" className="promise-section fade-in" data-animate>
-        <div className="promise-inner">
-            <div className="promise-text">
-                <span className="tagline">Lerne dein Geld zu lieben</span>
-                <h2>Wir holen dich dort ab, wo dein Kontostand gerade ist.</h2>
-                <p>
-                    Egal ob Taschengeld, Nebenjob oder BAföG – wir helfen dir, mit Geld warm zu werden. Du bekommst Klarheit über Einnahmen und
-                    Ausgaben, baust Puffer auf und kannst dir trotzdem Dinge gönnen, die dich glücklich machen.
-                </p>
-            </div>
-            <div className="promise-card">
-                <h3>Was dich erwartet</h3>
-                <ul>
-                    <li>Check-ins, die maximal 10 Minuten dauern</li>
-                    <li>Pushs, wenn dein Budget kurz vor knapp ist</li>
-                    <li>Guides für Sparziele, die wirklich erreichbar sind</li>
-                </ul>
-                <a className="link" href="#solutions">
-                    Zu den Features
-                </a>
-            </div>
-        </div>
-    </section>
-);
-
-const JourneySection = () => (
-    <section className="journey-section fade-in" data-animate>
-        <div className="journey-header">
-            <span className="tagline">Vom Chaos zum Überblick</span>
-            <h2>So läuft dein Start mit BrokeNoMore ab.</h2>
-        </div>
-        <div className="journey-grid">
-            {journeySteps.map((step) => (
-                <article key={step.title} className="journey-card floating-card">
-                    <span className="journey-icon" aria-hidden="true">
-                        {step.icon}
-                    </span>
-                    <h3>{step.title}</h3>
-                    <p>{step.description}</p>
+                    {medication.note && <p className="medication-card__note">{medication.note}</p>}
                 </article>
             ))}
         </div>
-    </section>
+    </Panel>
 );
 
-const StatSection = () => (
-    <section id="solutions" className="stats-section fade-in" data-animate>
-        <div className="stats-intro">
-            <h2>Hol dir den Überblick, der dich beruhigt.</h2>
-            <p>
-                Schon über 3.000 junge Menschen nutzen BrokeNoMore, um ihren eigenen Finanzcheck zu machen. Mit Live-Feedback, Community-Support
-                und Challenges, die dich motivieren.
-            </p>
-        </div>
-        <div className="stats-grid">
-            {statCards.map((card) => (
-                <article key={card.label} className="stat-card">
-                    <strong>{card.value}</strong>
-                    <span>{card.label}</span>
-                </article>
-            ))}
-        </div>
-        <div className="testimonial-grid">
-            {testimonialList.map((item) => (
-                <blockquote key={item.author} className="floating-card">
-                    <p>“{item.quote}”</p>
-                    <cite>{item.author}</cite>
-                </blockquote>
-            ))}
-        </div>
-    </section>
-);
-
-const ServicesSection = () => (
-    <section id="services" className="services-section fade-in" data-animate>
-        <div className="services-header">
-            <span className="tagline">Mach dein Geld zum Gamechanger</span>
-            <h2>Tools, die nicht nur Zahlen zeigen, sondern dich auch handeln lassen.</h2>
-            <p>
-                Egal ob du sparen, investieren oder Schulden abbauen willst: Wir geben dir die Struktur und die Motivation, dran zu bleiben.
-            </p>
-        </div>
-        <div className="services-grid">
-            {serviceCards.map((card) => (
-                <article key={card.title} className="service-card floating-card">
-                    <h3>{card.title}</h3>
-                    <p>{card.description}</p>
-                    <ul>
-                        {card.points.map((point) => (
-                            <li key={point}>{point}</li>
-                        ))}
-                    </ul>
-                    <a className="link" href="#contact">
-                        Ich will das testen
-                    </a>
-                </article>
-            ))}
-        </div>
-    </section>
-);
-
-const ContactSection = () => {
-    const [formData, setFormData] = useState({ name: "", email: "", message: "" });
-    const [status, setStatus] = useState(null);
-    const [isSubmitting, setIsSubmitting] = useState(false);
-
-    const handleChange = (event) => {
-        const { name, value } = event.target;
-        setFormData((prev) => ({ ...prev, [name]: value }));
-    };
-
-    const handleSubmit = async (event) => {
-        event.preventDefault();
-        if (isSubmitting) return;
-
-        setIsSubmitting(true);
-        setStatus(null);
-
-        try {
-            const apiBaseUrl =
-                typeof window !== "undefined" && window.location.hostname === "localhost"
-                    ? "http://localhost:4000"
-                    : "";
-
-            const response = await fetch(`${apiBaseUrl}/api/signup`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(formData),
-            });
-
-            if (!response.ok) {
-                const errorBody = await response.json().catch(() => ({}));
-                throw new Error(errorBody.message || "Ups! Da ist etwas schief gegangen.");
-            }
-
-            setStatus({ type: "success", message: "Danke! Wir haben dir gerade eine Begrüßungs-Mail geschickt." });
-            setFormData({ name: "", email: "", message: "" });
-        } catch (error) {
-            setStatus({ type: "error", message: error.message });
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
-
-    return (
-        <section id="contact" className="contact-section fade-in" data-animate>
-            <div className="contact-inner">
-                <h2>Lass uns gemeinsam durchstarten</h2>
-                <p>
-                    Du willst ein Onboarding, das so individuell ist wie dein Finanzleben? Schreib uns und wir setzen den ersten Termin mit dir –
-                    komplett kostenlos.
-                </p>
-                <form className="contact-form" onSubmit={handleSubmit}>
-                    <div className="form-grid">
-                        <label>
-                            <span>Name</span>
-                            <input
-                                name="name"
-                                type="text"
-                                required
-                                value={formData.name}
-                                onChange={handleChange}
-                                placeholder="Wie dürfen wir dich nennen?"
-                            />
-                        </label>
-                        <label>
-                            <span>E-Mail</span>
-                            <input
-                                name="email"
-                                type="email"
-                                required
-                                value={formData.email}
-                                onChange={handleChange}
-                                placeholder="dein.name@mail.de"
-                            />
-                        </label>
+const ContactSection = ({ contacts, showSensitive }) => (
+    <Panel id="contacts" title="Notfallkontakte" icon="📞" description="Reihenfolge nach Priorität">
+        <div className="contact-list">
+            {contacts.map((contact) => (
+                <article key={contact.name} className="contact-card">
+                    <div className="contact-card__header">
+                        <h3>{contact.name}</h3>
+                        <InfoTag label={contact.relation} />
                     </div>
-                    <label>
-                        <span>Nachricht (optional)</span>
-                        <textarea
-                            name="message"
-                            rows="3"
-                            value={formData.message}
-                            onChange={handleChange}
-                            placeholder="Erzähl uns kurz, was du dir wünschst."
-                        ></textarea>
-                    </label>
-                    <button type="submit" className="cta" disabled={isSubmitting}>
-                        {isSubmitting ? "Wird gesendet…" : "Kostenloses Onboarding sichern"}
-                    </button>
-                    {status && (
-                        <p className={`form-status ${status.type === "success" ? "success" : "error"}`}>{status.message}</p>
-                    )}
-                </form>
-            </div>
-        </section>
-    );
-};
-
-const Footer = () => (
-    <footer className="footer">
-        <p>© {new Date().getFullYear()} BrokeNoMore. Finanzwissen für alle, die nicht reich geboren wurden.</p>
-    </footer>
+                    <p className="contact-card__availability">{contact.availability}</p>
+                    <div className="contact-card__actions">
+                        <a className="action-button action-button--subtle" href={`tel:${contact.phone}`}>
+                            <span aria-hidden="true">📞</span>
+                            Anrufen
+                        </a>
+                        <span className="contact-card__phone">
+                            <Sensitive reveal={showSensitive}>{contact.phone}</Sensitive>
+                        </span>
+                    </div>
+                </article>
+            ))}
+        </div>
+    </Panel>
 );
 
-const useScrollAnimations = () => {
-    useEffect(() => {
-        const elements = document.querySelectorAll("[data-animate]");
-        if (!elements.length) {
-            return undefined;
-        }
+const CareTeamSection = ({ team, showSensitive }) => (
+    <Panel id="care-team" title="Behandelndes Team" icon="👩‍⚕️">
+        <ul className="care-team-list">
+            {team.map((member) => (
+                <li key={member.name}>
+                    <div className="care-team-list__main">
+                        <strong>{member.name}</strong>
+                        <span>{member.specialty}</span>
+                    </div>
+                    <div className="care-team-list__meta">
+                        <span>{member.institution}</span>
+                        <span>
+                            <Sensitive reveal={showSensitive}>{member.phone}</Sensitive>
+                        </span>
+                    </div>
+                </li>
+            ))}
+        </ul>
+    </Panel>
+);
 
-        const observer = new IntersectionObserver(
-            (entries) => {
-                entries.forEach((entry) => {
-                    if (entry.isIntersecting) {
-                        entry.target.classList.add("is-visible");
-                        observer.unobserve(entry.target);
-                    }
-                });
-            },
-            { threshold: 0.2 }
-        );
+const DeviceSection = ({ devices, vaccinations }) => (
+    <Panel id="equipment" title="Ausrüstung & Impfstatus" icon="🧰">
+        <div className="equipment-grid">
+            <div>
+                <h3>Hilfsmittel</h3>
+                <ul className="equipment-list">
+                    {devices.map((device) => (
+                        <li key={device.label}>
+                            <strong>{device.label}</strong>
+                            <span>{device.detail}</span>
+                        </li>
+                    ))}
+                </ul>
+            </div>
+            <div>
+                <h3>Impfungen</h3>
+                <ul className="equipment-list">
+                    {vaccinations.map((shot) => (
+                        <li key={shot.label}>
+                            <strong>{shot.label}</strong>
+                            <span>{shot.status}</span>
+                        </li>
+                    ))}
+                </ul>
+            </div>
+        </div>
+    </Panel>
+);
 
-        elements.forEach((element) => observer.observe(element));
+const DocumentSection = ({ documents }) => (
+    <Panel id="documents" title="Dokumente" icon="📂">
+        <ul className="document-list">
+            {documents.map((doc) => (
+                <li key={doc.type}>
+                    <div>
+                        <strong>{doc.type}</strong>
+                        <span>aktualisiert am {doc.updated}</span>
+                    </div>
+                    <a className="action-button action-button--subtle" href={doc.url}>
+                        <span aria-hidden="true">🔍</span>
+                        Anzeigen
+                    </a>
+                </li>
+            ))}
+        </ul>
+    </Panel>
+);
 
-        return () => {
-            observer.disconnect();
-        };
-    }, []);
+const BaselineSection = ({ vitals, lastMeasurements }) => (
+    <Panel id="baseline" title="Basiswerte" icon="📈">
+        <div className="baseline-grid">
+            {vitals.map((item) => (
+                <div key={item.label} className="baseline-card">
+                    <span className="baseline-card__label">{item.label}</span>
+                    <strong className="baseline-card__value">{item.value}</strong>
+                </div>
+            ))}
+        </div>
+        <div className="measurement-list">
+            <h3>Letzte Messungen</h3>
+            <ul>
+                {lastMeasurements.map((entry) => (
+                    <li key={entry.title}>
+                        <strong>{entry.title}</strong>
+                        <span>{entry.value}</span>
+                        <span className="measurement-list__time">{entry.timestamp}</span>
+                    </li>
+                ))}
+            </ul>
+        </div>
+    </Panel>
+);
+
+const TimelineSection = ({ events, notes }) => (
+    <Panel id="timeline" title="Verlauf & Hinweise" icon="🗂️">
+        <div className="timeline">
+            {events.map((event) => (
+                <article key={`${event.date}-${event.title}`} className="timeline-entry">
+                    <div className="timeline-entry__icon" aria-hidden="true">
+                        {event.icon}
+                    </div>
+                    <div>
+                        <p className="timeline-entry__date">{event.date}</p>
+                        <h3>{event.title}</h3>
+                        <p>{event.description}</p>
+                    </div>
+                </article>
+            ))}
+        </div>
+        <div className="note-list">
+            <h3>Kommunikationshinweise</h3>
+            <ul>
+                {notes.map((note) => (
+                    <li key={note}>{note}</li>
+                ))}
+            </ul>
+        </div>
+    </Panel>
+);
+
+const computeUpcomingMedications = () => {
+    const now = new Date();
+    const entries = [];
+
+    patientProfile.medications.forEach((medication) => {
+        medication.schedule.forEach((timeLabel) => {
+            if (!/^\d{2}:\d{2}$/.test(timeLabel)) {
+                return;
+            }
+            const [hour, minute] = timeLabel.split(":").map(Number);
+            const due = new Date();
+            due.setHours(hour, minute, 0, 0);
+            if (due.getTime() <= now.getTime()) {
+                due.setDate(due.getDate() + 1);
+            }
+            const diffMinutes = Math.round((due.getTime() - now.getTime()) / 60000);
+            const hours = Math.floor(diffMinutes / 60);
+            const minutes = diffMinutes % 60;
+            let relative = "in Kürze";
+            if (diffMinutes <= 0) {
+                relative = "jetzt";
+            } else if (hours === 0) {
+                relative = minutes <= 1 ? "in 1 Min" : `in ${minutes} Min`;
+            } else if (minutes === 0) {
+                relative = `in ${hours} Std`;
+            } else {
+                relative = `in ${hours} Std ${minutes} Min`;
+            }
+            entries.push({
+                medication,
+                timeLabel,
+                due,
+                relative,
+            });
+        });
+    });
+
+    entries.sort((a, b) => a.due.getTime() - b.due.getTime());
+
+    return entries.slice(0, 3);
 };
 
 const App = () => {
-    const getPreferredTheme = useMemo(
-        () => () => {
-            if (typeof window === "undefined") {
-                return "light";
-            }
-
-            const stored = window.localStorage.getItem("bnm-theme");
-            if (stored === "light" || stored === "dark") {
-                return stored;
-            }
-
-            return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-        },
-        []
-    );
-
-    const getPreferredPalette = useMemo(
-        () => () => {
-            if (typeof window === "undefined") {
-                return "mint";
-            }
-
-            const stored = window.localStorage.getItem("bnm-palette");
-            if (stored && colorPalettes.some((palette) => palette.id === stored)) {
-                return stored;
-            }
-
-            return "mint";
-        },
-        []
-    );
-
-    const [theme, setTheme] = useState(getPreferredTheme);
-    const [palette, setPalette] = useState(getPreferredPalette);
+    const [highContrast, setHighContrast] = useState(false);
+    const [showSensitive, setShowSensitive] = useState(false);
 
     useEffect(() => {
-        document.body.dataset.theme = theme;
-        window.localStorage.setItem("bnm-theme", theme);
-    }, [theme]);
+        document.body.dataset.contrast = highContrast ? "high" : "standard";
+    }, [highContrast]);
 
-    useEffect(() => {
-        const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-        const handler = (event) => {
-            const stored = window.localStorage.getItem("bnm-theme");
-            if (!stored) {
-                setTheme(event.matches ? "dark" : "light");
-            }
-        };
-
-        mediaQuery.addEventListener("change", handler);
-        return () => mediaQuery.removeEventListener("change", handler);
-    }, []);
-
-    useEffect(() => {
-        document.body.dataset.palette = palette;
-        window.localStorage.setItem("bnm-palette", palette);
-    }, [palette]);
-
-    useScrollAnimations();
-
-    const toggleTheme = () => {
-        setTheme((prev) => (prev === "dark" ? "light" : "dark"));
-    };
-
-    const handleSelectPalette = (nextPalette) => {
-        setPalette(nextPalette);
-    };
+    const upcomingMedications = useMemo(() => computeUpcomingMedications(), []);
 
     return (
-        <>
-            <NavBar theme={theme} onToggleTheme={toggleTheme} />
-            <main>
-                <HeroSection />
-                <CustomizationSection selectedPalette={palette} onSelectPalette={handleSelectPalette} />
-                <PromiseSection />
-                <JourneySection />
-                <StatSection />
-                <ServicesSection />
-                <ContactSection />
-            </main>
-            <Footer />
-        </>
+        <div className="app-shell">
+            <div className="app-shell__inner">
+                <header className="topbar" role="banner">
+                    <div>
+                        <p className="topbar__eyebrow">Digitaler Notfall-Pass</p>
+                        <h1>Patientenansicht</h1>
+                        <p className="topbar__meta">Zuletzt aktualisiert: {patientProfile.lastUpdated}</p>
+                    </div>
+                    <div className="topbar__actions">
+                        <button
+                            type="button"
+                            className="btn btn--ghost"
+                            onClick={() => setHighContrast((value) => !value)}
+                        >
+                            {highContrast ? "Standardkontrast" : "Hoher Kontrast"}
+                        </button>
+                        <button
+                            type="button"
+                            className="btn btn--ghost"
+                            onClick={() => setShowSensitive((value) => !value)}
+                        >
+                            {showSensitive ? "Sensible Daten verbergen" : "Sensible Daten anzeigen"}
+                        </button>
+                        <button type="button" className="btn btn--primary">
+                            Pass exportieren
+                        </button>
+                    </div>
+                </header>
+                <main className="layout-grid">
+                    <div className="layout-grid__main">
+                        <PatientSummary profile={patientProfile} showSensitive={showSensitive} />
+                        <CriticalInfo profile={patientProfile} />
+                        <MedicationSection medications={patientProfile.medications} upcoming={upcomingMedications} />
+                        <TimelineSection events={patientProfile.timeline} notes={patientProfile.notes} />
+                    </div>
+                    <aside className="layout-grid__aside">
+                        <ContactSection contacts={patientProfile.emergencyContacts} showSensitive={showSensitive} />
+                        <CareTeamSection team={patientProfile.medicalTeam} showSensitive={showSensitive} />
+                        <DeviceSection devices={patientProfile.devices} vaccinations={patientProfile.vaccinations} />
+                        <DocumentSection documents={patientProfile.documents} />
+                        <BaselineSection
+                            vitals={patientProfile.vitalParameters}
+                            lastMeasurements={patientProfile.lastMeasurements}
+                        />
+                    </aside>
+                </main>
+            </div>
+        </div>
     );
 };
 
-const root = ReactDOM.createRoot(document.getElementById("root"));
-root.render(<App />);
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
